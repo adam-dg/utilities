@@ -1,0 +1,36 @@
+#!/usr/bin/env php
+<?php
+
+if (empty($argv[1])) {
+  die('Missing source param');
+}
+
+if (empty($argv[2])) {
+  die('Missing target param');
+}
+
+$sourcePath = ltrim(rtrim($argv[1], '/'));
+$targetPath = ltrim(rtrim($argv[2], '/'));
+
+generateFileHashListFile($sourcePath, '/tmp/fs-compare-source-hashes.lst');
+generateFileHashListFile($targetPath, '/tmp/fs-compare-target-hashes.lst');
+
+exit;
+
+//cd ~/Sites/vdd/abc.dev && find . -type f | fgrep -i ./docroot/ | fgrep -iv ./docroot/sites/default/files > /tmp/fs-compare-source.lst
+function generateFileHashListFile($path, $outputFile) {
+  //$tmp = `cd $path && find . -type f | fgrep -i ./docroot/ | fgrep -iv ./docroot/sites/default/files`;
+  $tmp = `cd $path && find . -type f | fgrep -i ./docroot/sites/all/modules/contrib | fgrep -iv ./docroot/sites/all/modules/contrib/devel`;
+  $files = array_map('trim', explode("\n", $tmp));
+  sort($files);
+  $lines = array();
+  foreach ($files as $file) {
+    if (empty($file) || '.' == $file) {
+      continue;
+    }
+    $tmpPath = $path . ltrim($file, '.');
+    $lines[] = $file . ',' . hash('sha256', file_get_contents($tmpPath));
+  }
+
+  file_put_contents($outputFile, implode("\n", $lines));
+}

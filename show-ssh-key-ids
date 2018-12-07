@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+
+cd ~/.ssh
+for f in $(find . -name \*.pub)
+do
+  echo $f "..." $(ssh-keygen -E md5 -lf $f)
+done
